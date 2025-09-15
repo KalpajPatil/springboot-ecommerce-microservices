@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  eureka-server:
+    build: ./eureka-service
+    ports:
+      - "8761:8761"
+    networks:
+      - ecom-network
+    hostname: eureka-server  # ← Add this line
+    environment:
+    - EUREKA_INSTANCE_HOSTNAME=eureka-server
+    - EUREKA_CLIENT_REGISTERWITHEUREKA=true
+    - EUREKA_CLIENT_FETCHREGISTRY=true
+  # Database for product service
+  product-db:
+    image: postgres:16-alpine
+    container_name: product-db
+    environment:
+      POSTGRES_DB: productdb
+      POSTGRES_USER: productuser
+      POSTGRES_PASSWORD: productpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - product-data:/var/lib/postgresql/data
+    networks:
+      - ecom-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U productuser -d productdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  product-service:
+      build: ./product-service
+      ports:
+        - "8085:8085"
+      depends_on:
+        - product-db
+        - eureka-server
+      networks:
+        - ecom-network
+      environment:
+        - SERVER_PORT=8085
+        - SPRING_DATASOURCE_URL=jdbc:postgresql://product-db:5432/productdb
+        - SPRING_DATASOURCE_USERNAME=productuser
+        - SPRING_DATASOURCE_PASSWORD=productpass
+        - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+        - SPRING_JPA_SHOW_SQL=true
+        - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+        - EUREKA_INSTANCE_PREFERIPADDRESS=true
+        - EUREKA_CLIENT_REGISTERWITHEUREKA=true
+        - EUREKA_CLIENT_FETCHREGISTRY=true
+  api-gateway-service:
+      build: ./api-gateway-service
+      ports:
+        - "8084:8084"
+      depends_on:
+        - eureka-server
+      networks:
+        - ecom-network
+      environment:
+        - SERVER_PORT=8084
+        - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+        - EUREKA_INSTANCE_PREFERIPADDRESS=true
+        - EUREKA_CLIENT_REGISTERWITHEUREKA=true
+        - EUREKA_CLIENT_FETCHREGISTRY=true
+  auth-service:
+      build: ./auth-service
+      ports:
+        - "8087:8087"
+      depends_on:
+        - eureka-server
+      networks:
+        - ecom-network
+      environment:
+        - SERVER_PORT=8087
+        - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+        - EUREKA_INSTANCE_PREFERIPADDRESS=true
+        - EUREKA_CLIENT_REGISTERWITHEUREKA=true
+        - EUREKA_CLIENT_FETCHREGISTRY=true
+        - SPRING_DATASOURCE_URL=jdbc:postgresql://product-db:5432/productdb
+        - SPRING_DATASOURCE_USERNAME=productuser
+        - SPRING_DATASOURCE_PASSWORD=productpass
+        - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+        - SPRING_JPA_SHOW_SQL=true
+  review-service:
+      build: ./review-service
+      ports:
+        - "8086:8086"
+      depends_on:
+        - product-db
+        - eureka-server
+      networks:
+        - ecom-network
+      environment:
+        - SERVER_PORT=8086
+        - SPRING_DATASOURCE_URL=jdbc:postgresql://product-db:5432/productdb
+        - SPRING_DATASOURCE_USERNAME=productuser
+        - SPRING_DATASOURCE_PASSWORD=productpass
+        - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+        - SPRING_JPA_SHOW_SQL=true
+        - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+        - EUREKA_INSTANCE_PREFERIPADDRESS=true
+        - EUREKA_CLIENT_REGISTERWITHEUREKA=true
+        - EUREKA_CLIENT_FETCHREGISTRY=true
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - ecom-network
+
+volumes:
+  product-data:	
+  redis-data:
+  
+networks:
+  ecom-network:
+    driver: bridge
