@@ -26,25 +26,6 @@ A fully dockerized Spring Boot microservices project featuring user registration
 - **Dockerized setup**: All microservices + gateway + discovery + supporting services can be built & run via Docker Compose
 ---
 
-## 🏗 Architecture
-
-```text
-                                 +------------------------+
-           +-------------------->   Eureka Service        |
-           |                     |  (Service Discovery)    |
-           |                     +------------------------+
-           |
-     +-----+------+              +-------------------+     +-----------------+
-     | API Gateway +------------->  Auth Service      |     |  Product Service |
-     | (Spring-Cloud) |           +-------------------+     +-----------------+
-     |                |                                       |
-     |                |                                       |
-     |                |                                       |
-     |                +------------> Review Service            |
-     |                                                +--------+
-     |
-     +--> Redis (cache)
-
 🚀 Getting Started
 Prerequisites
 
