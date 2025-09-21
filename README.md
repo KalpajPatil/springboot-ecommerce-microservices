@@ -1,81 +1,105 @@
-# springboot-ecommerce-microservices
-A fully dockerized springboot microservices project that supports user registration and JWT authentication, inter-service communication, automatic service discovery, API documentation, caching and database migration support.
+<!-- Badges -->
+<p align="center">
+  <img src="https://img.shields.io/badge/SpringBoot-2.5-bluish?logo=springboot&logoColor=white" alt="Spring Boot" />
+  <img src="https://img.shields.io/badge/Microservices-architecture-purple" alt="Microservices" />
+  <img src="https://img.shields.io/badge/Docker-Compose-blue?logo=docker&logoColor=white" alt="Docker Compose" />
+  <img src="https://img.shields.io/badge/JWT-Authentication-green" alt="JWT Authentication" />
+  <img src="https://img.shields.io/badge/Redis-Caching-red" alt="Redis Caching" />
+  <img src="https://img.shields.io/badge/Flyway-Migration-teal" alt="Flyway" />
+</p>
 
-# Project execution
-Simply start a docker engine on your machine and run docker compose up --build from inside the root folder of the project. Flyway will take care of creating tables and inserting data into them.
-NOTE: For the users table only, registration in mandatory via API "http://localhost:8084/auth/v1/register" as passwords are encrypted during the registration process
-All database migration scripts are under product-service\src\main\resources\db\migration
+# 🛒 SpringBoot E-Commerce Microservices
 
-# Project modules overview
-# api-gateway-service
-Uses spring-cloud-gateway routing to map routes to different services.
-Common entry point for all http requests (port 8084)
-Implements JWT filter chain to authenticate incoming requests  
+A fully dockerized Spring Boot microservices project featuring user registration & JWT authentication, inter-service communication, automatic service discovery, caching, database migration, and more.
 
-# auth-service
-User registration and authentication service
-Issues JWT token to valid users
+---
 
-# eureka-service
-Starts an automatic service-discovery server to locate micro-services
+## ✅ Features
 
-# product-service
-Service to create/read/update/delete products and product_categories
+- **User registration** with encrypted passwords + **JWT authentication**
+- **API Gateway** to route and secure requests via JWT filter chain 
+- **Service Discovery** using Eureka 
+- **Product Service**: CRUD operations for products and categories  
+- **Review Service**: CRUD for reviews  
+- **Caching** via Redis  
+- **Database migration** & version control using Flyway  
+- **Dockerized setup**: All microservices + gateway + discovery + supporting services can be built & run via Docker Compose
+---
 
-# review-service
-Service to create/read/update/delete reviews
+## 🏗 Architecture
 
-# Working screenshots
-Host ports are mapped to docker container ports
+```text
+                                 +------------------------+
+           +-------------------->   Eureka Service        |
+           |                     |  (Service Discovery)    |
+           |                     +------------------------+
+           |
+     +-----+------+              +-------------------+     +-----------------+
+     | API Gateway +------------->  Auth Service      |     |  Product Service |
+     | (Spring-Cloud) |           +-------------------+     +-----------------+
+     |                |                                       |
+     |                |                                       |
+     |                |                                       |
+     |                +------------> Review Service            |
+     |                                                +--------+
+     |
+     +--> Redis (cache)
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/68f313c8-4d54-45d7-9d2e-8c04d2499596" />
+🚀 Getting Started
+Prerequisites
 
+Docker
 
-service discovery and registration with eureka server
+Docker Compose
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c324d90a-1299-4798-b98d-fefdfd1596ca" />
+(Optional) Local Java & Maven if you want to run services without Docker
 
-user authentication and JWT token issuance
+Setup & Run
+# Clone the repo
+git clone https://github.com/KalpajPatil/springboot-ecommerce-microservices.git
+cd springboot-ecommerce-microservices
 
-productdb=# select * from users;
- id |         created_at         |      email       |                           password                           | role |         updated_at         | username 
-----+----------------------------+------------------+--------------------------------------------------------------+------+----------------------------+----------
-  1 | 2025-09-15 21:41:59.957609 | john@gmail.com   | $2a$10$SobR1OYzKDArAkoALeCxve2n/zTs9NRiPF2uplw8i5Smh1D8gR8/m | user | 2025-09-15 21:41:59.957609 | john
-  2 | 2025-09-15 21:42:20.29622  | mike@outlook.com | $2a$10$2ZvocPDBaUNTI3C3w.mPYe.Tb0cFn0fySBipNKAhSBziTSaIiIde. | user | 2025-09-15 21:42:20.29622  | mike
-
-we will use either user to log in:- issues a JWT that will be passed to subsequent http request as a bearer token
-
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/cd315afe-28e9-4d94-8061-d07e7a987a6e" />
-
-
-GET request to "http://localhost:8084/product/v1/products"
-
-
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/3043d9dc-a315-4383-9a7c-bedf34a68c39" />
-
-
-POST request to "http://localhost:8084/review/v1/review/create"
-
-
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2761e76b-b4d1-4a63-b641-0292caa5f0c7" />
-
-# caching with redis
-127.0.0.1:6379> KEYS *
-1) "product::Basketball"
-2) "products-all::[1,5,productName: ASC]"
-127.0.0.1:6379>
-   
-# swagger API documentation at "http://localhost:8085/v3/api-docs"
+# Build & start all services
+docker-compose up --build
 
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/89ad0407-0f1d-4ae2-bcd1-4e8430d7873b" />
+The Flyway scripts will initialize / migrate the databases for the services. 
+GitHub
 
+The auth service requires registration first, since passwords are encrypted during registration. 
 
+🔧 Endpoints & Usage
+Service	HTTP Port	Sample Endpoints
+API Gateway	8084	POST /auth/v1/register 
+ • POST /auth/v1/login • GET /product/v1/products etc.
 
+Product Service	internal via gateway	CRUD on /product/v1/… 
 
+Review Service	internal	CRUD on /review/v1/… 
 
+Swagger / API docs are made available via the relevant service(s). 
 
+🗂 Project Structure
+/
+├── api-gateway-service/       # Spring Cloud Gateway & JWT routing
+├── auth-service/              # Handles user registration, login, JWT
+├── eureka-service/            # Service Discovery server
+├── product-service/           # Products & product categories CRUD + DB migrations
+├── review-service/            # Reviews CRUD + relation to products etc.
+├── docker-compose.yml         # Orchestrates all containers
+├── README.md
+└── LICENSE
 
+🔧 Technologies
 
+Language: Java
 
+Frameworks: Spring Boot, Spring Cloud Gateway, Spring Cloud Netflix Eureka
 
+Security: JWT
+
+DB & Migration: Postgres + Flyway 
+
+Caching: Redis 
+
+Containerization: Docker + Docker Compose
