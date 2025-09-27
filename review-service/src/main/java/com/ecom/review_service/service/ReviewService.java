@@ -30,11 +30,13 @@ public class ReviewService {
 	@Autowired
 	private ReviewRepository reviewRepository;
 
+    @Autowired
+    private ProductServiceCircuitBreaker productServiceCircuitBreaker;
+
 	@Transactional
-	public Review createReview(ReviewDto reviewDto) throws Exception {
-		try {
-			Product product = productServiceClient.getProductByName(reviewDto.getproductName());
-			User user = userServiceClient.getUserById(reviewDto.getReviewerId());
+	public Review createReview(ReviewDto reviewDto){
+			Product product = productServiceCircuitBreaker.getProductByName(reviewDto.getproductName());
+			User user = productServiceCircuitBreaker.getUserById(reviewDto.getReviewerId());
 			Review review = new Review();
 			review.setReviewTitle(reviewDto.getReviewTitle());
 			review.setReviewDescription(reviewDto.getReviewDescription());
@@ -42,10 +44,6 @@ public class ReviewService {
 			review.setReviewStar(reviewDto.getReviewStar());
 			review.setReviewer(user.getUsername());
 			return reviewRepository.save(review);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception("product service is offline");
-		}
 	}
 	
 	@Transactional

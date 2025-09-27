@@ -1,13 +1,11 @@
 package com.ecom.product_service.service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
+import com.ecom.product_service.exception.ReviewServiceOfflineException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -75,13 +73,10 @@ public class ProductService {
 		String productName = product.getProductName();
 		productRepository.deleteById(id);
 		// Manual eviction AFTER successful deletion
-		cacheManager.getCache("product").evict(productName);
-		cacheManager.getCache("products-all").clear();
+		Objects.requireNonNull(cacheManager.getCache("product")).evict(productName);
+		Objects.requireNonNull(cacheManager.getCache("products-all")).clear();
 		return true;
 	}
-	
-	public List<ReviewDto> getReviewsByProductId(String id){
-		List<ReviewDto> reviews = reviewServiceClient.getReviewsByProductId(id);
-		return reviews;
-	}
+
+
 }

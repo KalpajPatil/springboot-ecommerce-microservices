@@ -3,6 +3,7 @@ package com.ecom.product_service.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ecom.product_service.service.ReviewServiceCircuitBreaker;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -30,9 +31,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class ProductController {
 
 	private ProductService productService;
-
-	public ProductController(ProductService productService) {
+    private ReviewServiceCircuitBreaker reviewServiceCircuitBreaker;
+	public ProductController(ProductService productService, ReviewServiceCircuitBreaker reviewServiceCircuitBreaker) {
 		this.productService = productService;
+        this.reviewServiceCircuitBreaker = reviewServiceCircuitBreaker;
 	}
 
 	//implements pagination, sorting and filtering
@@ -82,7 +84,7 @@ public class ProductController {
 	
 	@GetMapping("/reviews/{productId}")
 	public ResponseEntity<List<ReviewDto>> getReviews(@PathVariable("productId") String productId){
-		List<ReviewDto> reviews = productService.getReviewsByProductId(productId);
+		List<ReviewDto> reviews = reviewServiceCircuitBreaker.getReviewsByProductId(productId);
 		return new ResponseEntity<>(reviews, HttpStatus.OK);
 	}
 
